@@ -26,7 +26,7 @@ def writeTFRecord(path, filename):
     writer = tf.python_io.TFRecordWriter(path + filename + '.tfrecords')
     for i, [image, label] in enumerate(zip(images_list, labels_list)):
         _image = cv2.imread(image)  # 使用opencv读取图像数据
-        _image = cv2.cvtColor(_image, cv2.COLOR_RGB2GRAY)  # 因为图像保存时为三通到图像，此处要转化为灰度图像
+        # _image = cv2.cvtColor(_image, cv2.COLOR_RGB2GRAY)  # 因为图像保存时为三通到图像，此处要转化为灰度图像(用于LeNet)
         image_raw = _image.tobytes()  # 图像矩阵转化为bytes
         label = str.encode(label)  # 字符串转化为bytes
 
