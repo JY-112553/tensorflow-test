@@ -40,7 +40,7 @@ def writeTFRecord(path, filename):
 
 
 def main():
-    path = '/media/sf_Datasets/MNIST/'
+    path = os.getcwd() + '/MNIST_data/'  # 文件保存路径
     path_train = path + 'train/'
     path_test = path + 'test/'
     filename_train = 'MNIST_train'

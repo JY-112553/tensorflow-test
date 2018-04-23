@@ -1,5 +1,6 @@
 import tensorflow as tf
 import cv2
+import os
 
 
 def readTFRecord(filename):
@@ -57,7 +58,7 @@ def method(path, filename):
 
 
 def main():
-    path = '/media/sf_Datasets/MNIST/'
+    path = os.getcwd() + '/MNIST_data/'  # 文件读取路径
     path_train = path + 'train/'
     path_test = path + 'test/'
     filename_train = 'MNIST_train'
