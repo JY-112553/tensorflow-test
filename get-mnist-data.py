@@ -37,9 +37,11 @@ def byte2img(data, path):
     # 把二进制格式的图像images保存为jpg格式
     for i in range(len(trX)):
         img = 255 * np.mat(trX[i]).reshape(28, 28)
+        # img = cv2.resize(img, (32, 32))  # 改变图像尺寸
         cv2.imwrite(path + 'train/img/' + str(i + 1) + '.jpg', img)
     for i in range(len(teX)):
         img = 255 * np.mat(teX[i]).reshape(28, 28)
+        # img = cv2.resize(img, (32, 32))  # 改变图像尺寸
         cv2.imwrite(path + 'test/img/' + str(i + 1) + '.jpg', img)
 
 

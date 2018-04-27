@@ -51,10 +51,8 @@ def method(path, filename):
         except tf.errors.OutOfRangeError:
             print('Done training -- epoch limit reached')
         finally:
-            # When done, ask the threads to stop. 请求该线程停止
-            coord.request_stop()
-            # And wait for them to actually do it. 等待被指定的线程终止
-            coord.join(threads)
+            coord.request_stop()  # 请求该线程停止
+            coord.join(threads)  # 等待被指定的线程终止
 
 
 def main():
