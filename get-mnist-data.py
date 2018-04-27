@@ -30,19 +30,25 @@ def mkdir(path):
 
 
 def byte2img(data, path):
-    mkdir(path + 'train/img')
-    mkdir(path + 'test/img')
+    img_size_x = 32
+    img_size_y = 32
+
+    train_path = 'train/img(' + str(img_size_x) + 'x' + str(img_size_y) + ')'
+    test_path = 'test/img(' + str(img_size_x) + 'x' + str(img_size_y) + ')'
+
+    mkdir(path + train_path)
+    mkdir(path + test_path)
 
     trX, teX = data.train.images, data.test.images
     # 把二进制格式的图像images保存为jpg格式
     for i in range(len(trX)):
         img = 255 * np.mat(trX[i]).reshape(28, 28)
-        # img = cv2.resize(img, (32, 32))  # 改变图像尺寸
-        cv2.imwrite(path + 'train/img/' + str(i + 1) + '.jpg', img)
+        img = cv2.resize(img, (img_size_x, img_size_y))
+        cv2.imwrite(path + train_path + '/' + str(i + 1) + '.jpg', img)
     for i in range(len(teX)):
         img = 255 * np.mat(teX[i]).reshape(28, 28)
-        # img = cv2.resize(img, (32, 32))  # 改变图像尺寸
-        cv2.imwrite(path + 'test/img/' + str(i + 1) + '.jpg', img)
+        img = cv2.resize(img, (img_size_x, img_size_y))
+        cv2.imwrite(path + test_path + '/' + str(i + 1) + '.jpg', img)
 
 
 def byte2txt(data, path):
@@ -61,7 +67,7 @@ def byte2txt(data, path):
 
 def main():
     mnist_data = _load_data()
-    path = os.getcwd() + '/MNIST_data/'  # 文件保存路径
+    path = 'D:/Datasets/MNIST/'  # 文件保存路径
     byte2img(mnist_data, path)
     byte2txt(mnist_data, path)
 
