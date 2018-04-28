@@ -12,4 +12,3 @@
 
 18-04-28
 修改部分代码。对tfrecords格式的mnist数据使用AlexNet模型。
-
