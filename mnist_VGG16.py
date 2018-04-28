@@ -1,8 +1,8 @@
 import tensorflow as tf
 import numpy as np
 
-img_size_x = 227
-img_size_y = 227
+img_size_x = 224
+img_size_y = 224
 img_chanel = 3
 
 
@@ -29,41 +29,66 @@ def init_weights(shape):
     return tf.Variable(tf.random_normal(shape, stddev=0.01))
 
 
-def model(X, w1, w2, w3a, w3b, w3c, w4, w5, w_o):
+def model(X, w1a, w1b, w2a, w2b, w3a, w3b, w3c,
+          w4a, w4b, w4c, w5a, w5b, w5c, w6, w7, w_o):
     # 第一组卷积层及池化层
-    l1a = tf.nn.relu(tf.nn.conv2d(X, w1, strides=[1, 4, 4, 1], padding='VALID'))
-    # l1a shape=(?, 55, 55, 96)
-    l1 = tf.nn.max_pool(l1a, ksize=[1, 3, 3, 1], strides=[1, 2, 2, 1], padding='VALID')
-    # l1 shape=(?, 27, 27, 96)
+    l1a = tf.nn.relu(tf.nn.conv2d(X, w1a, strides=[1, 1, 1, 1], padding='SAME'))
+    # l1a shape=(?, 224, 224, 64)
+    l1b = tf.nn.relu(tf.nn.conv2d(l1a, w1b, strides=[1, 1, 1, 1], padding='SAME'))
+    # l1b shape=(?, 224, 224, 64)
+    l1 = tf.nn.max_pool(l1b, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding='SAME')
+    # l1 shape=(?, 112, 112, 64)
 
     # 第二组卷积层及池化层
-    l2a = tf.nn.relu(tf.nn.conv2d(l1, w2, strides=[1, 1, 1, 1], padding='SAME'))
-    # l2a shape=(?, 27, 27, 256)
-    l2 = tf.nn.max_pool(l2a, ksize=[1, 3, 3, 1], strides=[1, 2, 2, 1], padding='VALID')
-    # l2 shape=(?, 13, 13, 256)
+    l2a = tf.nn.relu(tf.nn.conv2d(l1, w2a, strides=[1, 1, 1, 1], padding='SAME'))
+    # l2a shape=(?, 112, 112, 128)
+    l2b = tf.nn.relu(tf.nn.conv2d(l2a, w2b, strides=[1, 1, 1, 1], padding='SAME'))
+    # l2b shape=(?, 112, 112, 128)
+    l2 = tf.nn.max_pool(l2b, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding='SAME')
+    # l2 shape=(?, 56, 56, 128)
 
     # 第三组卷积层及池化层
     l3a = tf.nn.relu(tf.nn.conv2d(l2, w3a, strides=[1, 1, 1, 1], padding='SAME'))
-    # l3a shape=(?, 13, 13, 384)
+    # l3a shape=(?, 56, 56, 256)
     l3b = tf.nn.relu(tf.nn.conv2d(l3a, w3b, strides=[1, 1, 1, 1], padding='SAME'))
-    # l3b shape=(?, 13, 13, 384)
+    # l3b shape=(?, 56, 56, 256)
     l3c = tf.nn.relu(tf.nn.conv2d(l3b, w3c, strides=[1, 1, 1, 1], padding='SAME'))
-    # l3c shape=(?, 13, 13, 256)
-    l3 = tf.nn.max_pool(l3c, ksize=[1, 3, 3, 1], strides=[1, 2, 2, 1], padding='VALID')
-    # l3 shape=(?, 6, 6, 256)
-    l3 = tf.reshape(l3, [-1, w4.get_shape().as_list()[0]])
-    # reshape to (?, 256 * 6 * 6)
+    # l3b shape=(?, 56, 56, 256)
+    l3 = tf.nn.max_pool(l3c, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding='SAME')
+    # l3 shape=(?, 28, 28, 256)
+
+    # 第四组卷积层及池化层
+    l4a = tf.nn.relu(tf.nn.conv2d(l3, w4a, strides=[1, 1, 1, 1], padding='SAME'))
+    # l4a shape=(?, 28, 28, 512)
+    l4b = tf.nn.relu(tf.nn.conv2d(l4a, w4b, strides=[1, 1, 1, 1], padding='SAME'))
+    # l4b shape=(?, 28, 28, 512)
+    l4c = tf.nn.relu(tf.nn.conv2d(l4b, w4c, strides=[1, 1, 1, 1], padding='SAME'))
+    # l4c shape=(?, 28, 28, 512)
+    l4 = tf.nn.max_pool(l4c, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding='SAME')
+    # l4 shape=(?, 14, 14, 512)
+
+    # 第五组卷积层及池化层
+    l5a = tf.nn.relu(tf.nn.conv2d(l4, w5a, strides=[1, 1, 1, 1], padding='SAME'))
+    # l5a shape=(?, 14, 14, 512)
+    l5b = tf.nn.relu(tf.nn.conv2d(l5a, w5b, strides=[1, 1, 1, 1], padding='SAME'))
+    # l5b shape=(?, 14, 14, 512)
+    l5c = tf.nn.relu(tf.nn.conv2d(l5b, w5c, strides=[1, 1, 1, 1], padding='SAME'))
+    # l5c shape=(?, 14, 14, 512)
+    l5 = tf.nn.max_pool(l5c, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding='SAME')
+    # l5 shape=(?, 7, 7, 512)
+    l5 = tf.reshape(l5, [-1, w6.get_shape().as_list()[0]])
+    # reshape to (?, 512 * 7 * 7)
 
     # 全连接层
-    l4 = tf.nn.relu(tf.matmul(l3, w4))
-    # l4 shape=(?, 4096)
+    l6 = tf.nn.relu(tf.matmul(l5, w6))
+    # l6 shape=(?, 4096)
 
     # 全连接层
-    l5 = tf.nn.relu(tf.matmul(l4, w5))
-    # l5 shape=(?, 4096)
+    l7 = tf.nn.relu(tf.matmul(l6, w7))
+    # l7 shape=(?, 4096)
 
     # 输出层
-    py = tf.matmul(l5, w_o)
+    py = tf.matmul(l7, w_o)
     # py shape=(?, 10)
 
     return py  # 返回预测值
@@ -72,8 +97,8 @@ def model(X, w1, w2, w3a, w3b, w3c, w4, w5, w_o):
 def _train(path_train, filename_train, path_test, filename_test):
     images_train, labels_train = readTFRecord(path_train + filename_train + '.tfrecords')
     images_test, labels_test = readTFRecord(path_test + filename_test + '.tfrecords')
-    train_size = 128
-    test_size = 256
+    train_size = 8
+    test_size = 8
 
     images_train_batch, labels_train_batch = \
         tf.train.shuffle_batch([images_train, labels_train],
@@ -85,16 +110,25 @@ def _train(path_train, filename_train, path_test, filename_test):
     X = tf.placeholder("float", [None, img_size_x, img_size_y, img_chanel])
     Y = tf.placeholder("float", [None, 10])
 
-    w1 = init_weights([11, 11, 3, 96])  # patch 大小为 11 × 11 ,输入维度为 3 ,输出维度为 96
-    w2 = init_weights([5, 5, 96, 256])  # patch 大小为 5 × 5 ,输入维度为 96 ,输出维度为 256
-    w3a = init_weights([3, 3, 256, 384])  # patch 大小为 3 × 3 ,输入维度为 256 ,输出维度为 384
-    w3b = init_weights([3, 3, 384, 384])  # patch 大小为 3 × 3 ,输入维度为 384 ,输出维度为 384
-    w3c = init_weights([3, 3, 384, 256])  # patch 大小为 3 × 3 ,输入维度为 384 ,输出维度为 256
-    w4 = init_weights([256 * 6 * 6, 4096])  # 全连接层,输入维度为 16 × 5 × 5 ,输出维度为4096
-    w5 = init_weights(([4096, 4096]))  # 全连接层,输入维度为 4096, 输出维度为 4096
+    w1a = init_weights([3, 3, 3, 64])  # patch 大小为 3 × 3 ,输入维度为 3 ,输出维度为 64
+    w1b = init_weights([3, 3, 64, 64])  # patch 大小为 3 × 3 ,输入维度为 64 ,输出维度为 64
+    w2a = init_weights([3, 3, 64, 128])  # patch 大小为 3 × 3 ,输入维度为 64 ,输出维度为 128
+    w2b = init_weights([3, 3, 128, 128])  # patch 大小为 3 × 3 ,输入维度为 128 ,输出维度为 128
+    w3a = init_weights([3, 3, 128, 256])  # patch 大小为 3 × 3 ,输入维度为 128 ,输出维度为 256
+    w3b = init_weights([3, 3, 256, 256])  # patch 大小为 3 × 3 ,输入维度为 256 ,输出维度为 256
+    w3c = init_weights([3, 3, 256, 256])  # patch 大小为 3 × 3 ,输入维度为 256 ,输出维度为 256
+    w4a = init_weights([3, 3, 256, 512])  # patch 大小为 3 × 3 ,输入维度为 256 ,输出维度为 512
+    w4b = init_weights([3, 3, 512, 512])  # patch 大小为 3 × 3 ,输入维度为 256 ,输出维度为 256
+    w4c = init_weights([3, 3, 512, 512])  # patch 大小为 3 × 3 ,输入维度为 256 ,输出维度为 256
+    w5a = init_weights([3, 3, 512, 512])  # patch 大小为 3 × 3 ,输入维度为 256 ,输出维度为 256
+    w5b = init_weights([3, 3, 512, 512])  # patch 大小为 3 × 3 ,输入维度为 256 ,输出维度为 256
+    w5c = init_weights([3, 3, 512, 512])  # patch 大小为 3 × 3 ,输入维度为 256 ,输出维度为 256
+    w6 = init_weights([512 * 7 * 7, 4096])  # 全连接层,输入维度为 512 × 7 × 7 ,输出维度为4096
+    w7 = init_weights(([4096, 4096]))  # 全连接层,输入维度为 4096, 输出维度为 4096
     w_o = init_weights([4096, 10])  # 输出层,输入维度为 4096, 输出维度为 10 ,代表 10 类 (labels)
 
-    py_x = model(X, w1, w2, w3a, w3b, w3c, w4, w5, w_o)  # 得到预测值
+    py_x = model(X, w1a, w1b, w2a, w2b, w3a, w3b, w3c,
+                 w4a, w4b, w4c, w5a, w5b, w5c, w6, w7, w_o)  # 得到预测值
 
     cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(logits=py_x, labels=Y))
     train_op = tf.train.RMSPropOptimizer(0.001, 0.9).minimize(cost)
@@ -116,8 +150,8 @@ def _train(path_train, filename_train, path_test, filename_test):
 
                 trX, trY, teX, teY = sess.run([images_train_batch, labels_train_batch,
                                                images_test_batch, labels_test_batch])
-                trX = trX.reshape(-1, img_size_x, img_size_y, img_chanel)  # 227x227x3 input img
-                teX = teX.reshape(-1, img_size_x, img_size_y, img_chanel)  # 227x227x3 input img
+                trX = trX.reshape(-1, img_size_x, img_size_y, img_chanel)  # 224x224x3 input img
+                teX = teX.reshape(-1, img_size_x, img_size_y, img_chanel)  # 224x224x3 input img
 
                 temp1 = []
                 temp2 = []

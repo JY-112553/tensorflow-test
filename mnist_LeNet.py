@@ -1,6 +1,10 @@
 import tensorflow as tf
 import numpy as np
 
+img_size_x = 32
+img_size_y = 32
+img_chanel = 1
+
 
 def readTFRecord(filename):
     # 根据文件名生成一个队列
@@ -14,7 +18,7 @@ def readTFRecord(filename):
                                            'label': tf.FixedLenFeature([], tf.string)
                                        })
     image = tf.decode_raw(features['image_raw'], tf.uint8)
-    image = tf.reshape(image, [32, 32, 1])
+    image = tf.reshape(image, [img_size_x, img_size_y, img_chanel])
     image = tf.cast(image, tf.float32) * (1. / 255)
     label = tf.cast(features['label'], tf.string)
 
@@ -25,9 +29,9 @@ def init_weights(shape):
     return tf.Variable(tf.random_normal(shape, stddev=0.01))
 
 
-def model(X, w, w2, w3, w4, w_o):
+def model(X, w1, w2, w3, w4, w_o):
     # 第一组卷积层及池化层
-    l1a = tf.nn.relu(tf.nn.conv2d(X, w, strides=[1, 1, 1, 1], padding='VALID'))
+    l1a = tf.nn.relu(tf.nn.conv2d(X, w1, strides=[1, 1, 1, 1], padding='VALID'))
     # l1a shape=(?, 28, 28, 6)
     l1 = tf.nn.max_pool(l1a, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding='SAME')
     # l1 shape=(?, 14, 14, 6)
@@ -41,15 +45,18 @@ def model(X, w, w2, w3, w4, w_o):
     # reshape to (?, 16 * 5 * 5)
 
     # 全连接层
-    l3 = tf.nn.relu(tf.matmul(l2, w3))  # l3 shape=(?, 120)
+    l3 = tf.nn.relu(tf.matmul(l2, w3))
+    # l3 shape=(?, 120)
 
     # 全连接层
-    l4 = tf.nn.relu(tf.matmul(l3, w4))  # l4 shape=(?, 84)
+    l4 = tf.nn.relu(tf.matmul(l3, w4))
+    # l4 shape=(?, 84)
 
     # 输出层
-    pyx = tf.matmul(l4, w_o)
+    py = tf.matmul(l4, w_o)
+    # py shape=(?, 10)
 
-    return pyx  # 返回预测值
+    return py  # 返回预测值
 
 
 def _train(path_train, filename_train, path_test, filename_test):
@@ -65,16 +72,16 @@ def _train(path_train, filename_train, path_test, filename_test):
         tf.train.shuffle_batch([images_test, labels_test],
                                batch_size=test_size, capacity=2000, min_after_dequeue=1000)
 
-    X = tf.placeholder("float", [None, 32, 32, 1])
+    X = tf.placeholder("float", [None, img_size_x, img_size_x, img_chanel])
     Y = tf.placeholder("float", [None, 10])
 
-    w = init_weights([5, 5, 1, 6])  # patch 大小为 5 × 5 ,输入维度为 1 ,输出维度为 6
+    w1 = init_weights([5, 5, 1, 6])  # patch 大小为 5 × 5 ,输入维度为 1 ,输出维度为 6
     w2 = init_weights([5, 5, 6, 16])  # patch 大小为 5 × 5 ,输入维度为 6 ,输出维度为 16
     w3 = init_weights([16 * 5 * 5, 120])  # 全连接层,输入维度为 16 × 5 × 5 ,输出维度为120
     w4 = init_weights(([120, 84]))  # 全连接层,输入维度为 120, 输出维度为 84
     w_o = init_weights([84, 10])  # 输出层,输入维度为 84, 输出维度为 10 ,代表 10 类 (labels)
 
-    py_x = model(X, w, w2, w3, w4, w_o)  # 得到预测值
+    py_x = model(X, w1, w2, w3, w4, w_o)  # 得到预测值
 
     cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(logits=py_x, labels=Y))
     train_op = tf.train.RMSPropOptimizer(0.001, 0.9).minimize(cost)
@@ -96,8 +103,8 @@ def _train(path_train, filename_train, path_test, filename_test):
 
                 trX, trY, teX, teY = sess.run([images_train_batch, labels_train_batch,
                                                images_test_batch, labels_test_batch])
-                trX = trX.reshape(-1, 32, 32, 1)  # 32x32x1 input img
-                teX = teX.reshape(-1, 32, 32, 1)  # 32x32x1 input img
+                trX = trX.reshape(-1, img_size_x, img_size_y, img_chanel)  # 32x32x1 input img
+                teX = teX.reshape(-1, img_size_x, img_size_y, img_chanel)  # 32x32x1 input img
 
                 temp1 = []
                 temp2 = []
@@ -116,7 +123,7 @@ def _train(path_train, filename_train, path_test, filename_test):
 
                 sess.run(train_op, feed_dict={X: trX, Y: _trY})
                 predict = sess.run(predict_op, feed_dict={X: teX})
-                if train_step % 100 == 0:
+                if train_step % 10 == 0:
                     print(train_step, np.mean(np.argmax(_teY, axis=1) == predict))
                 train_step += 1
 
@@ -134,8 +141,6 @@ def main():
     path_train = path + 'train/'
     path_test = path + 'test/'
 
-    img_size_x = 32
-    img_size_y = 32
     path_size = '(' + str(img_size_x) + 'x' + str(img_size_y) + ')'
 
     filename_train = 'MNIST_train' + path_size
