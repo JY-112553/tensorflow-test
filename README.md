@@ -1,4 +1,5 @@
 ﻿# tensorflow-test
+
 使用指南：
 
 1.使用get_mnist_data.py获取tensorflow官方的mnist数据，解析并保存为jpg格式的图片和txt格式的标签。针对不同模型，图片的尺寸需要改变。
@@ -15,4 +16,3 @@
 
 18-04-28
 修改部分代码。对mnist数据集使用AlexNet模型。
-
